@@ -66,7 +66,7 @@ useEffect(() => {
 
   return (
     <div className="min-h-screen bg-slate-900 text-white p-8 flex flex-col items-center">
-      <h1 className="text-4xl font-black mb-8 text-cyan-400 uppercase tracking-tighter">FZZZT! ENGINE</h1>
+      <h1 className="text-4xl font-black mb-8 text-cyan-400 uppercase tracking-tighter">FZZZT ENGINE V2</h1>
       
       {/* SCORES SECTION */}
       <div className="flex gap-8 mb-8 bg-slate-800 p-4 rounded-xl border border-white/10 shadow-2xl">
