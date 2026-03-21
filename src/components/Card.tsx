@@ -17,7 +17,7 @@ export default function Card({ card, isHidden }: CardProps) {
     const bgColor = card.type === "ProductionUnit" ? "bg-green-700" : "bg-slate-700";
   
     return (
-      <div className={`w-32 h-48 ${bgColor} border-2 border-slate-400 rounded-xl p-2 flex flex-col justify-between shadow-xl`}>
+      <div className={`w-32 h-48 flex-shrink-0 ${bgColor} border-2 border-slate-400 rounded-xl p-2 flex flex-col justify-between shadow-xl`}>
         <div className="flex justify-between items-start">
           <span className="bg-yellow-400 text-black text-[10px] font-bold px-1 rounded">Pwr: {card.power}</span>
         </div>

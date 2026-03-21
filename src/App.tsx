@@ -83,7 +83,7 @@ useEffect(() => {
       {/* ANIMATED CONVEYOR BELT */}
       <div className="w-full max-w-5xl mb-12">
         <p className="text-center text-[10px] text-slate-500 uppercase tracking-widest mb-4">Conveyor Belt (Page 9 Rules)</p>
-        <div className="flex gap-4 p-6 bg-black/20 rounded-3xl border border-white/5 overflow-x-hidden justify-center relative min-h-[220px]">
+        <div className="flex gap-4 p-8 bg-black/20 rounded-3xl border border-white/5 overflow-x-auto scrollbar-hide snap-x snap-mandatory">
           <AnimatePresence mode="popLayout">
             {belt.map((card, i) => (
               <motion.div
