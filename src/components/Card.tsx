@@ -1,4 +1,11 @@
-export default function Card({ card, isHidden }) {
+import { CardData } from '../types';
+
+interface CardProps {
+  card: CardData;
+  isHidden: boolean;
+}
+
+export default function Card({ card, isHidden }: CardProps) {
     if (isHidden) {
       return (
         <div className="w-32 h-48 bg-blue-900 border-4 border-blue-400 rounded-xl flex items-center justify-center shadow-lg">
