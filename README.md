@@ -3,7 +3,7 @@
 A modern web implementation of the 2009 sci-fi auction card game **Fzzzt!** by Tony Boydell. Built to demonstrate complex state management and modern frontend architecture.
 
 ## 🔗 Live Demo
-[Paste your Vercel Link Here: https://fzzzt-web.vercel.app]
+[Paste your Vercel Link Here: [https://fzzzt-web.vercel.app]
 
 ## 🚀 Key Features
 - **Dynamic State Management:** Synchronizes a hidden "Conveyor Belt" with real-time bidding logic.
