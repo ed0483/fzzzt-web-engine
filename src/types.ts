@@ -8,13 +8,19 @@ export interface CardData {
     points: number;
     symbols?: string[];
     beltSpeed?: number;
-    //For production units, the recipe is a mapping of card IDs to quantities required for production
-    recipe?: Record<string, number>;
+    
+    // For production units
+    recipe?: Record<string, number>; // e.g. { "Nut": 1, "Cog": 1 }
+    bonusPerWidget?: number;         // The big points (e.g. +9)
+    penalty?: number;                // The loss if not filled (e.g. -3)
+
+    // For the Building Phase logic
+    assignedToUnitId?: number | null; // Tracks which Production Unit this robot is assigned to
 }
 
 export interface Player {
     name: string;
-    hand: number[]; // Array of card IDs in the player's hand   
+    hand: number[]; 
     score: number;
     isChief: boolean;
 }
