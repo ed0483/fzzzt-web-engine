@@ -1,10 +1,15 @@
+// Importing React hooks for state management, side effects, and performance optimisation
 import { useState, useEffect, useMemo } from 'react';
+// Importing Framer Moption components for smooth layout transitions and exit animations
 import { motion, AnimatePresence } from 'framer-motion';
+// Importing our custom TypeScript interface to ensure data integrity
 import { CardData } from './types';
+// Importing the visual Card component to keep the UI modular
 import Card from './components/Card';
+// Importing the raw game data from our JSON database
 import cardsDataRaw from './cards.json';
 
-// --- CONSTANTS ---
+// Defining the game rules as a constant array to keep the UI text separare from the logic
 const GAME_RULES = [
   { title: "The Goal", text: "Collect robots to earn Victory Points and build factory widgets for bonus scores.", icon: "🏆" },
   { title: "The Auction", text: "Bid for the head card using power (1-3). Highest bid wins. You win all ties (Chief Rule)!", icon: "⚡" },
@@ -13,10 +18,12 @@ const GAME_RULES = [
   { title: "Penalties", text: "Fzzzt! cards subtract points. Empty Production Units also penalize your efficiency.", icon: "⚠️" },
 ];
 
-// --- SUB-COMPONENT: ONBOARDING BRIEFING ---
+// A Functional Component for the Onboarding Modal using TypeScript props definition
 const Instructions = ({ onStart }: { onStart: () => void }) => (
   <motion.div 
+    // Initial and animate props create a smooth fade-in effect when the modal mounts  
     initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+    // Backdrop blur and high z-index ensure focus remains on the instructions
     className="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-4"
   >
     <div className="bg-slate-800 border-2 border-cyan-500/50 p-8 rounded-3xl max-w-lg shadow-[0_0_50px_rgba(6,182,212,0.2)] text-center">
@@ -32,48 +39,66 @@ const Instructions = ({ onStart }: { onStart: () => void }) => (
   </motion.div>
 );
 
-// Process raw JSON to ensure assignment tracking
+// Mapping the raw JSON data and injecting an 'assignedToUnitID' property for our building logic
 const processedCards = (cardsDataRaw as CardData[]).map(c => ({ ...c, assignedToUnitId: null }));
 
 export default function App() {
   // --- STATE ---
+  // Stores cards not yet on the belt
   const [deck, setDeck] = useState<CardData[]>([]);
+  // Stores the B cards currently avaiable for auction
   const [belt, setBelt] = useState<CardData[]>([]);
+  // Stores the robot and units the user has successfully won
   const [wonCards, setWonCards] = useState<CardData[]>([]);
+  // The user's available power for bidding (resets after each auction)
   const [userHand, setUserHand] = useState<number[]>([1, 2, 3]);
+  // The AI's available power for bidding (resets after each auction)
   const [aiHand, setAiHand] = useState<number[]>([1, 2, 3]);
+  // Tracks the user's current score based on won cards
   const [userScore, setUserScore] = useState<number>(0);
+  // Tracks the AI's current score based on won cards
   const [aiScore, setAiScore] = useState<number>(0);
+  // Dynamic message to provide feedback after each bid
   const [message, setMessage] = useState<string>("Awaiting your first bid, Chief.");
+  // Controls the visibility of the onboarding instructions modal
   const [showInstructions, setShowInstructions] = useState(true);
   const [showRules, setShowRules] = useState(false);
+  // Tracks which Production Unit is currently selected for robot assignment during the construction phase
   const [selectedUnitId, setSelectedUnitId] = useState<number | null>(null);
 
-  // --- INITIALIZATION ---
+  // --- INITIALISATION ---
   useEffect(() => {
+    // Shuffling the deck using a simple sort-randomiser (suitable for a frontend prototype)
     const shuffled = [...processedCards].sort(() => Math.random() - 0.5);
+    // Setting the first 8 cards to the belt and the rest to the hidden deck
     setBelt(shuffled.slice(0, 8));
     setDeck(shuffled.slice(8));
   }, []);
 
   // --- BELT REFILL LOGIC ---
   useEffect(() => {
+    // when the belt is empty, we draw the next 8 cards from the deck state
     if (belt.length === 0 && deck.length > 0) {
       const nextEight = deck.slice(0, 8);
       setBelt(nextEight);
+      // Immutably updating the deck by removing the cards we just drew
       setDeck(prev => prev.slice(8));
       setMessage("Belt refilled. New robots incoming!");
     }
-  }, [belt, deck]);
+  }, [belt, deck]); // Runs whenver belt or deck state changes
 
   // --- AUCTION LOGIC ---
   const handleBid = (bidValue: number) => {
     if (belt.length === 0) return;
-    const targetCard = belt[0];
+    const targetCard = belt[0]; // The 'Head' card currently being bid on
+    // Basic AI heuristic: selects a random card from its remaining hand
     const aiBidValue = aiHand[Math.floor(Math.random() * aiHand.length)];
 
+    // Rule: Chief Mechanic (Player) wins on greater than OR equal (tie-breaker)
     if (bidValue >= aiBidValue) {
+      // Functional update to ensure we are using the most recent score state
       setUserScore(prev => prev + targetCard.points);
+      // Adding the card to the user's inventory for the final construction phase
       setWonCards(prev => [...prev, targetCard]);
       setMessage(bidValue === aiBidValue ? `🤝 TIE! Chief Wins! (${bidValue} vs ${aiBidValue})` : `✅ Success! You won ${targetCard.name}`);
     } else {
@@ -81,10 +106,13 @@ export default function App() {
       setMessage(`❌ AI outbid you! (${aiBidValue} vs ${bidValue})`);
     }
 
+    // Removing the used cards from both hands to simulate 'exhausting' resources
     setUserHand(prev => prev.filter((v, i) => v !== bidValue || prev.indexOf(v) !== i));
     setAiHand(prev => prev.filter((v, i) => v !== aiBidValue || prev.indexOf(v) !== i));
+    // Advancing the belt state by removing the head card
     setBelt(prev => prev.slice(1));
 
+    // If hand is low, refill with the standard starter set
     if (userHand.length <= 1) {
       const refill = [1, 2, 3, 4, 5];
       setUserHand(refill);
@@ -95,39 +123,50 @@ export default function App() {
   // --- CONSTRUCTION LOGIC ---
   const handleAssign = (robotId: number) => {
     if (selectedUnitId === null) return;
+    // Iterating through inventory and 'linking' a robot to  unit via its ID
     setWonCards(prev => prev.map(c => c.id === robotId ? { ...c, assignedToUnitId: selectedUnitId } : c));
   };
 
+  // useMemo caches the result of the bonus calculation unless 'wonCards' changes ( Optimisation to avoid recalculating on every render )
   const finalBonus = useMemo(() => {
     let bonus = 0;
+    // Filtering for active production blueprints
     const myUnits = wonCards.filter(c => c.type === 'ProductionUnit');
     myUnits.forEach(unit => {
+      // Identifying robots assigned to this specific blueprint
       const assigned = wonCards.filter(r => r.assignedToUnitId === unit.id);
       const pool: Record<string, number> = {};
+      // Creating a tally of all symbols available in the assigned robot pool
       assigned.forEach(r => r.symbols?.forEach(s => pool[s] = (pool[s] || 0) + 1));
       let canBuild = true;
+      // Comparing symbols tallies against the blueprint's requirements
       if (unit.recipe) {
         Object.entries(unit.recipe).forEach(([sym, req]) => { if ((pool[sym] || 0) < req) canBuild = false; });
       }
+      // Applying bonuses for success or penalties for empty units
       if (canBuild) bonus += (unit.bonusPerWidget || 0);
       else bonus -= (unit.penalty || 0);
     });
     return bonus;
   }, [wonCards]);
 
-  // --- UI HELPERS ---
+  // Funtion to provide real-time strategic hints based on current inventory
   const getStrategicAdvice = () => {
     const target = belt[0];
     if (!target || target.type !== 'Robot') return "ℹ️ Analyzing factory needs...";
     const myUnits = wonCards.filter(c => c.type === 'ProductionUnit');
     const neededSymbols = new Set();
+    // Gathering all symbols required by currently owned units
     myUnits.forEach(unit => Object.keys(unit.recipe || {}).forEach(sym => neededSymbols.add(sym)));
+    // Checking if the current target card helps satisfy any of those units
     const matches = target.symbols?.filter(s => neededSymbols.has(s));
     if (matches && matches.length > 0) return `🎯 STRATEGIC FIT: Provides ${matches.join(' & ')}!`;
     return "ℹ️ General Utility: Useful for future bidding power.";
   };
 
+  // Determine how many cards are visible based on the rules
   const beltSpeed = belt[0]?.beltSpeed || 1;
+  // Checking if all cards have been processed to switch to the construction UI
   const isBuildingPhase = deck.length === 0 && belt.length === 0;
 
   return (
